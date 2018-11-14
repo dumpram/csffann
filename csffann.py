@@ -50,9 +50,9 @@ def forwardprop_multilayer(xin, sizes):
 
 def main():
     # CS parameters
-    M = 8
-    N = 20
-    K = 2
+    M = 8 # number of measurements
+    N = 20 # number of samples
+    K = 2 # number of samples != 0
 
     # Measurement matrix
     A = np.random.rand(M, N)
