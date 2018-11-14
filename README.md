@@ -1,1 +1,1 @@
-## 1-D Compressive Sensing with Feed Forward Artificial Neural Network
+## 1-D Compressive Sensing with Feedforward Artificial Neural Network
