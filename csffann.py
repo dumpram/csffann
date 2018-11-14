@@ -49,16 +49,19 @@ def forwardprop_multilayer(xin, sizes):
     return xout
 
 def main():
+    # CS parameters
     M = 8
     N = 20
     K = 2
 
+    # Measurement matrix
     A = np.random.rand(M, N)
     (xs, ys) = get_sparse_dataset(1, 10000, A, N, M, K)
 
     X = tf.placeholder("float", shape=[1, N])
     Y = tf.placeholder("float", shape=[1, M])
 
+    # NN construction
     xhat = forwardprop_multilayer(Y, [M, 100, 100, 60, N])
 
     cost = tf.reduce_mean(tf.square(tf.subtract(xhat, X)))
@@ -69,6 +72,7 @@ def main():
     init = tf.global_variables_initializer()
     sess.run(init)
 
+    # Create log for tensorboard
     writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
 
     for epoch in range(250):
@@ -85,6 +89,7 @@ def main():
         print("Epoch: %d, train cost: %lf" % (epoch, 
                                                 train_cost / len(xs[1, :])))
 
+    # Test sparse signal
     (tx, ty) = get_sparse_signal(202020, A, N, K)
 
     err = sess.run(cost, 
@@ -92,22 +97,17 @@ def main():
                            Y: np.reshape(ty, (1, M))})
 
     print('Test error: ' + str(err))
+
+    # Signal reconstruction
     xrek = sess.run(xhat, feed_dict={Y: np.reshape(ty, (1, M))})
 
+    # Display test signal and reconstruction
     plt.stem(tx)
     plt.stem(xrek[0], linefmt='r--', markerfmt='o')
     plt.show()
 
-    #import pdb
-    #pdb.set_trace()
 
     sess.close()
 
 if __name__ == "__main__":
     main()
-
-# tf.nn.dropout
-# he inicijalizacija
-# xavier incijalizacija
-# relu aktivacija
-# truncated normal distribution
