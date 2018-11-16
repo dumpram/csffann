@@ -42,7 +42,7 @@ def forwardprop_multilayer(xin, sizes):
     h = xin
     for i in range(len(weights) - 1):
         h = tf.matmul(h, weights[i])
-        #h = tf.add(h, biases[i])
+        h = tf.add(h, biases[i])
         h = tf.nn.relu(h)
     xout = tf.matmul(h, weights[-1])
     
@@ -55,7 +55,7 @@ def main():
     K = 2 # number of samples != 0
 
     # Measurement matrix
-    A = np.random.rand(M, N)
+    A = np.random.randn(M, N)
     (xs, ys) = get_sparse_dataset(1, 10000, A, N, M, K)
 
     X = tf.placeholder("float", shape=[1, N])
