@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import time
 
 def get_sparse_dataset(start, size, A, N, M, K):
     ys = np.empty([M, size - start])
@@ -50,9 +51,9 @@ def forwardprop_multilayer(xin, sizes):
 
 def main():
     # CS parameters
-    M = 8 # number of measurements
-    N = 20 # number of samples
-    K = 2 # number of samples != 0
+    M = 28 # number of measurements
+    N = 64 # number of samples
+    K = 6 # number of samples != 0
 
     # Measurement matrix
     A = np.random.randn(M, N)
@@ -62,12 +63,13 @@ def main():
     Y = tf.placeholder("float", shape=[1, M])
 
     # NN construction
-    xhat = forwardprop_multilayer(Y, [M, 100, 100, 60, N])
+    xhat = forwardprop_multilayer(Y, [M, 100, 100, 80, N])
 
     cost = tf.reduce_mean(tf.square(tf.subtract(xhat, X)))
     #cost = tf.add(cost, tf.norm(xhat, ord=1) * 0.0005)
     updates = tf.train.AdamOptimizer(0.001).minimize(cost)
 
+    saver = tf.train.Saver()
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
@@ -75,7 +77,7 @@ def main():
     # Create log for tensorboard
     writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
 
-    for epoch in range(250):
+    for epoch in range(20):
         train_cost = 0.0
         for i in range(len(xs[1, :])):
             sess.run(updates, 
@@ -99,14 +101,18 @@ def main():
     print('Test error: ' + str(err))
 
     # Signal reconstruction
+    start = time.time()
     xrek = sess.run(xhat, feed_dict={Y: np.reshape(ty, (1, M))})
+    duration = time.time() - start;
+
+    print("Reconstruction time: " + str(duration * 1000) + " ms")
 
     # Display test signal and reconstruction
     plt.stem(tx)
     plt.stem(xrek[0], linefmt='r--', markerfmt='o')
     plt.show()
 
-
+    saver.save(sess, 'models/model.ckpt')
     sess.close()
 
 if __name__ == "__main__":
