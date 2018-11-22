@@ -3,7 +3,10 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.image as img
+from PIL import Image, ImageFile
 from scipy import fftpack
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def get_block(image, x, y, size=8):
 	return image[x * size : (x + 1) * size, y * size : (y + 1) * size]
@@ -38,16 +41,16 @@ def to_mat(a, size):
 
 def get_img_dataset(B, M, phi, path):
 	files = os.listdir(path)
-	Xs = []
-	ys = []
+	Xs = np.array([])
+	ys = np.array([])
 
 	for file in files:
 		(X, y) = get_img_measurements(B, M, phi, os.path.join(path, file))
-		if not Xs:
+		if Xs.size == 0:
 			Xs = X
 		else:
 			Xs = np.concatenate((X, Xs))
-		if not ys:
+		if ys.size == 0:
 			ys = y
 		else:
 			ys = np.concatenate((y, ys))

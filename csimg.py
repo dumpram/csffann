@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as img
 import time
 import imgutils as utils
+from PIL import Image, ImageFile
 
 def init_weight(shape):
     weights = tf.random_normal(shape, stddev=0.1)
@@ -42,16 +43,16 @@ def main():
     M = int(N / 2)
 
     phi = np.random.randn(M, N)
-    (Xs, ys) = utils.get_img_dataset(B, M, phi, 'samples')
+    (Xs, ys) = utils.get_img_dataset(B, M, phi, 'dataset')
 
     X = tf.placeholder("float", shape=[1, N])
     Y = tf.placeholder("float", shape=[1, M])
 
     # NN construction
-    xhat = forwardprop_multilayer(Y, [M, 128, 128, N])
+    xhat = forwardprop_multilayer(Y, [M, 128, 128, 64, N])
 
     cost = tf.reduce_mean(tf.square(tf.subtract(xhat, X)))
-    updates = tf.train.AdamOptimizer(0.0001).minimize(cost)
+    updates = tf.train.AdamOptimizer(0.0005).minimize(cost)
 
     saver = tf.train.Saver()
     sess = tf.Session()
@@ -60,8 +61,6 @@ def main():
 
     # Create log for tensorboard
     writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
-    import pdb
-    pdb.set_trace()
     for epoch in range(20):
         train_cost = 0.0
         for i in range(len(Xs[:, 1])):
@@ -76,9 +75,8 @@ def main():
         print("Epoch: %d, train cost: %lf" % (epoch, 
                                                 train_cost / len(Xs[:, 1])))
 
-
-    sample = 'samples/cameraman.tif'
-    (Xs, ys) = utils.get_img_measurements(B, M, phi, sample)
+    # Test image
+    (Xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
 
     Xsrek = np.zeros(Xs.shape)
     for i in range(len(Xs[:, 1])):
@@ -94,4 +92,5 @@ def main():
     sess.close()
 
 if __name__ == "__main__":
+	ImageFile.LOAD_TRUNCATED_IMAGES = True
 	main()
