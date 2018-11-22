@@ -36,28 +36,29 @@ def to_mat(a, size):
 	return x
 
 
-def get_img_dataset(szx, szy, B, M, phi, path):
+def get_img_dataset(B, M, phi, path):
 	files = os.listdir(path)
-	N = B * B
-	L = int(szx * szy / (B * B))
-
-	Xs = np.zeros((L * len(files), B * B))
-	ys = np.zeros((L * len(files), M))
-
-	idx = 0
+	Xs = []
+	ys = []
 
 	for file in files:
-		image = img.imread(os.path.join(path,file))
-		for i in range(int(szx / B)):
-			for j in range(int(szy / B)):
-				Xs[idx, :] = to_vec(dct2(get_block(image, i, j)))
-				ys[idx, :] = np.matmul(phi, Xs[i, :])
-				idx += 1
+		(X, y) = get_img_measurements(B, M, phi, os.path.join(path, file))
+		if not Xs:
+			Xs = X
+		else:
+			Xs = np.concatenate((X, Xs))
+		if not ys:
+			ys = y
+		else:
+			ys = np.concatenate((y, ys))
 
 	return (Xs, ys)
 
 
-def get_img_measurements(szx, szy, B, M, phi, file):
+def get_img_measurements(B, M, phi, file):
+	image = img.imread(file)
+	(szx, szy) = image.shape
+
 	N = B * B
 	L = int(szx * szy / (B * B))
 
@@ -66,7 +67,6 @@ def get_img_measurements(szx, szy, B, M, phi, file):
 
 	idx = 0
 
-	image = img.imread(file)
 	for i in range(int(szx / B)):
 		for j in range(int(szy / B)):
 			Xs[idx, :] = to_vec(dct2(get_block(image, i, j)))

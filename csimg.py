@@ -42,7 +42,7 @@ def main():
     M = int(N / 2)
 
     phi = np.random.randn(M, N)
-    (Xs, ys) = utils.get_img_dataset(szx, szy, B, M, phi, 'samples')
+    (Xs, ys) = utils.get_img_dataset(B, M, phi, 'samples')
 
     X = tf.placeholder("float", shape=[1, N])
     Y = tf.placeholder("float", shape=[1, M])
@@ -60,7 +60,8 @@ def main():
 
     # Create log for tensorboard
     writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
-
+    import pdb
+    pdb.set_trace()
     for epoch in range(20):
         train_cost = 0.0
         for i in range(len(Xs[:, 1])):
@@ -77,7 +78,7 @@ def main():
 
 
     sample = 'samples/cameraman.tif'
-    (Xs, ys) = utils.get_img_measurements(szx, szy, B, M, phi, sample)
+    (Xs, ys) = utils.get_img_measurements(B, M, phi, sample)
 
     Xsrek = np.zeros(Xs.shape)
     for i in range(len(Xs[:, 1])):
@@ -85,8 +86,7 @@ def main():
     		{Y: np.reshape(ys[i, :], (1, M))})
 
     image = utils.get_img_from_dct_blocks(szx, szy, B, Xsrek)
-    import pdb
-    pdb.set_trace()
+
     plt.imshow(image)
     plt.show()
 
