@@ -72,18 +72,25 @@ def get_img_measurements(B, M, phi, file):
 
 	for i in range(int(szx / B)):
 		for j in range(int(szy / B)):
-			Xs[idx, :] = to_vec(dct2(get_block(image, i, j)))
+			block = get_block(image, i, j)
+			Xs[idx, :] = to_vec((block))
 			ys[idx, :] = np.matmul(phi, Xs[idx, :])
+			Xs[idx, :] = Xs[idx, :] - np.mean(Xs[idx, :])
 			idx += 1
 
 	return (Xs, ys)
 
-def get_img_from_dct_blocks(szx, szy, B, Xs):
+def get_img_from_dct_blocks(szx, szy, B, Xs, ys):
 	image = np.zeros((szx, szy))
 	idx = 0
 	for i in range(int(szx / B)):
-		for j in range(int(szy /B)):
+		for j in range(int(szy / B)):
 			image[i * B : (i + 1) * B, j * B : (j + 1) * B] = \
-				idct2(to_mat(Xs[idx, :], B))
+				(to_mat(Xs[idx, :], B)) + ys[idx, -1]
 			idx += 1
 	return image
+
+def psnr(i1, i2):
+	(M, N) = i1.shape
+	MSE = (1. / (M * N)) * np.sum((i1 - i2) ** 2)
+	return 10 * np.log10(255.0**2 / MSE)  

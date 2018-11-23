@@ -80,25 +80,9 @@ def main():
     updates = tf.train.AdamOptimizer(0.0001).minimize(cost)
 
     saver = tf.train.Saver()
-    sess = tf.Session()
-    init = tf.global_variables_initializer()
-    sess.run(init)
 
-    # Create log for tensorboard
-    writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
-    for epoch in range(1):
-        train_cost = 0.0
-        for i in range(len(Xs[:, 1])):
-            sess.run(updates, 
-                feed_dict={X: np.reshape(Xs[i, :], (1, N)), 
-                           Y: np.reshape(ys[i, :], (1, M))})
-            
-            train_cost += sess.run(cost, 
-                feed_dict={X: np.reshape(Xs[i, :], (1, N)), 
-                           Y: np.reshape(ys[i, :], (1, M))})
-        
-        print("Epoch: %d, train cost: %lf" % (epoch, 
-                                                train_cost / len(Xs[:, 1])))
+    sess = tf.Session()
+    saver.restore(sess, 'models/model.ckpt')
 
     # Test image
     (Xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
@@ -120,8 +104,8 @@ def main():
     plt.imshow(orig, cmap='gray')
     plt.show()
 
-    saver.save(sess, 'models/model.ckpt')
-    sess.close()
+    #saver.save(sess, 'models/model.ckpt')
+    #sess.close()
 
 if __name__ == "__main__":
 	ImageFile.LOAD_TRUNCATED_IMAGES = True
