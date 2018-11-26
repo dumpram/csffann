@@ -3,10 +3,13 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 import time
-import imgutils as utils
 from PIL import Image, ImageFile
 from skimage import measure
 import pdb
+
+# User utilities
+import imgutils as utils
+import common as common
 
 def init_weight_normal(shape):
     weights = tf.random_normal(shape, stddev=0.04)
@@ -48,7 +51,7 @@ def forwardprop_multilayer(xin, sizes):
         h = tf.matmul(h, weights[i])
         h = tf.add(h, biases[i])
         h = tf.nn.relu(h)
-    xout = tf.matmul(h, weights[-1])
+    xout = tf.matmul(h, weights[-1], name='xhat')
     
     return xout
 
@@ -65,53 +68,53 @@ def main():
     N = B * B
     M = int(N / 2)
 
-    phi = np.random.randn(M, N)
-    phi[M - 1, :] = 1.0 / N;
-    (Xs, ys) = utils.get_img_dataset(B, M, phi, 'dataset')
+    # Measurement matrix
+    phi = common.get_measurement_matrix_with_embedded_average(M, N, seed=1367)
+    # Create dataset
+    (xs, ys) = utils.get_img_dataset(B, M, phi, 'dataset')
 
     X = tf.placeholder("float", shape=[1, N])
-    Y = tf.placeholder("float", shape=[1, M])
+    Y = tf.placeholder("float", shape=[1, M], name='Y')
     # NN construction
     xhat = forwardprop_multilayer(Y, [M, 256, 256, 256, 128, N])
-    #block = tf.reshape(xhat, [B, B])
     cost = tf.reduce_mean(tf.square(tf.subtract(xhat, X)))
-    #l1 = tf.norm(dct2(block), ord=1)
-    #cost = tf.add(cost, 0.01 * l1)
     updates = tf.train.AdamOptimizer(0.0001).minimize(cost)
 
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(keep_checkpoint_every_n_hours=1)
     sess = tf.Session()
     init = tf.global_variables_initializer()
     sess.run(init)
 
     # Create log for tensorboard
     writer = tf.summary.FileWriter("logs/sess.log", sess.graph)
-    for epoch in range(1):
+    
+    # Train NN
+    for epoch in range(120):
         train_cost = 0.0
-        for i in range(len(Xs[:, 1])):
+        for i in range(len(xs[:, 1])):
             sess.run(updates, 
-                feed_dict={X: np.reshape(Xs[i, :], (1, N)), 
+                feed_dict={X: np.reshape(xs[i, :], (1, N)), 
                            Y: np.reshape(ys[i, :], (1, M))})
             
             train_cost += sess.run(cost, 
-                feed_dict={X: np.reshape(Xs[i, :], (1, N)), 
+                feed_dict={X: np.reshape(xs[i, :], (1, N)), 
                            Y: np.reshape(ys[i, :], (1, M))})
         
         print("Epoch: %d, train cost: %lf" % (epoch, 
-                                                train_cost / len(Xs[:, 1])))
+                                                train_cost / len(xs[:, 1])))
 
-    # Test image
-    (Xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
+    # Load test image
+    (xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
 
-    Xsrek = np.zeros(Xs.shape)
-    for i in range(len(Xs[:, 1])):
-    	Xsrek[i, :] = sess.run(xhat, feed_dict=
+    xsrek = np.zeros(xs.shape)
+    for i in range(len(xs[:, 1])):
+    	xsrek[i, :] = sess.run(xhat, feed_dict=
     		{Y: np.reshape(ys[i, :], (1, M))})
 
-    image = utils.get_img_from_dct_blocks(szx, szy, B, Xsrek, ys)
+    image = utils.get_img_from_dct_blocks(szx, szy, B, xsrek, ys)
     image = (image - np.min(image))
-    image = image * 255 / np.max(image)
-    orig  = utils.get_img_from_dct_blocks(szx, szy, B, Xs, ys)
+    image = image * 255.0 / np.max(image)
+    orig  = utils.get_img_from_dct_blocks(szx, szy, B, xs, ys)
 
     print("PSNR: " + str(utils.psnr(orig, image)))
 
