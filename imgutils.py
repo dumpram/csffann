@@ -78,9 +78,9 @@ def get_img_measurements(B, M, phi, file):
 			Xs[idx, :] = Xs[idx, :] - np.mean(Xs[idx, :])
 			idx += 1
 
-	return (Xs, ys)
+	return (Xs, ys, szx, szy)
 
-def get_img_from_dct_blocks(szx, szy, B, Xs, ys):
+def get_img_from_blocks(szx, szy, B, Xs, ys):
 	image = np.zeros((szx, szy))
 	idx = 0
 	for i in range(int(szx / B)):

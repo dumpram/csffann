@@ -14,8 +14,6 @@ import common as common
 
 def main():
 	# Image parameters
-    szx = 256
-    szy = 256
     B = 8
     N = B * B
     M = int(N / 2)
@@ -32,18 +30,18 @@ def main():
     saver.restore(sess, 'models/model.ckpt')
 
     # Load test image
-    (Xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
+    (Xs, ys, szx, szy) = \
+        utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
 
     Xsrek = np.zeros(Xs.shape)
+    # Reconstruct image blocks
     for i in range(len(Xs[:, 1])):
     	Xsrek[i, :] = sess.run(xhat, feed_dict=
     		{Y: np.reshape(ys[i, :], (1, M))})
 
-    image = utils.get_img_from_dct_blocks(szx, szy, B, Xsrek, ys)
-    #image = (image - np.min(image))
-    #image = image * 255.0 / np.max(image)
+    image = utils.get_img_from_blocks(szx, szy, B, Xsrek, ys)
     image = image.clip(min=0.0, max=255.0)
-    orig  = utils.get_img_from_dct_blocks(szx, szy, B, Xs, ys)
+    orig  = utils.get_img_from_blocks(szx, szy, B, Xs, ys)
     print("PSNR: " + str(utils.psnr(orig, image)))
 
     plt.imshow(image, cmap='gray')
@@ -51,10 +49,6 @@ def main():
     plt.imshow(orig, cmap='gray')
     plt.show()
 
-    plt.imsave('reconstructed.png', image, cmap='gray')
-
-    #saver.save(sess, 'models/model.ckpt')
-    #sess.close()
     sess.close()
 
 if __name__ == "__main__":
