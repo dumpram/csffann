@@ -45,7 +45,7 @@ def get_img_dataset(B, M, phi, path):
 	ys = np.array([])
 
 	for file in files:
-		(X, y) = get_img_measurements(B, M, phi, os.path.join(path, file))
+		(X, y, _, _) = get_img_measurements(B, M, phi, os.path.join(path, file))
 		if Xs.size == 0:
 			Xs = X
 		else:

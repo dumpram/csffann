@@ -62,8 +62,6 @@ def dct2(a):
 
 def main():
 	# Image parameters
-    szx = 256
-    szy = 256
     B = 8
     N = B * B
     M = int(N / 2)
@@ -104,7 +102,8 @@ def main():
                                                 train_cost / len(xs[:, 1])))
 
     # Load test image
-    (xs, ys) = utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
+    (xs, ys, szx, szy) = \
+        utils.get_img_measurements(B, M, phi, 'test/cameraman.tif')
 
     xsrek = np.zeros(xs.shape)
     for i in range(len(xs[:, 1])):
